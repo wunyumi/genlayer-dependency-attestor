@@ -1,0 +1,38 @@
+name: Dependency contract tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  direct-mode:
+    name: Direct Mode and lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install test tools
+        run: uv pip install --system -r requirements.txt
+
+      - name: Run AST safety lint
+        run: genvm-lint lint contracts/dependency_policy_attestor.py
+
+      - name: Run local state tests
+        run: python tests/unit/test_dependency_logic.py
+
+      - name: Run mocked GenLayer Direct Mode tests
+        run: pytest tests/direct/test_dependency_policy_attestor.py -v
